@@ -1,9 +1,9 @@
 [package]
 name = "rust_geotiff"
-version = "0.0.1"
-authors = ["Dominik Bucher <dobucher@ethz.ch>"]
+version = "0.1.0"
+authors = ["Dominik Bucher <dobucher@ethz.ch>, Etienne Prothon <etienne.prothon@gmail.com>"]
+edition = "2018"
 
 [dependencies]
-byteorder = "*"
-enum_primitive = "*"
-num = "*"
+tiff = "0.5"
+thiserror = "1.0"
