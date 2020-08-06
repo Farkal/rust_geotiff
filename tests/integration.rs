@@ -1,11 +1,52 @@
-use std::fs::File;
 use rust_geotiff::decoder::Decoder;
+use rust_geotiff::encoder::TiffEncoder;
+use rust_geotiff::tags;
+use tiff::encoder::{colortype};
+// use tiff::tags::{CompressionMethod};
+use std::{io::{SeekFrom, Seek}, fs::File};
 
 #[test]
-fn test_load() {
-    let img_file = File::open("resources/marbles.tif").expect("Cannot find test image!");
-    let decoder = Decoder::new(img_file).expect("Cannot create decoder");
-    println!("{:?}", decoder)
+fn test_encoder() {
+    let mut file = std::io::Cursor::new(Vec::new());
+    let mut image_data = Vec::new();
+    for x in 0..100 {
+        for y in 0..100u8 {
+            let val = x + y;
+            image_data.push(val);
+            image_data.push(val);
+            image_data.push(val);
+        }
+    }
+    let image_data = &image_data[..];
+    {
+        let mut encoder = TiffEncoder::new(&mut file).expect("Cannot create decoder");
+        let mut image = encoder.new_image::<colortype::RGB8>(100, 100).unwrap();
+        image.encoder().write_tag(tags::GDALNODATA, "-5999").unwrap();
+        image.write_data(&image_data).unwrap();
+        // encoder.encoder.write_image(100, 100, &image_data, colortype::RGB8, CompressionMethod::None, vec![(tags::GDALNODATA, Value::Str("-5999".into()))]).unwrap();
+    }
+    {
+        file.seek(SeekFrom::Start(0)).unwrap();
+        let mut decoder = Decoder::new(&mut file).expect("Cannot create decoder");
+        // println!("{:#?}", decoder);
+        println!("HERE !");
+        let no_data = decoder
+            .get_tag(tags::GDALNODATA)
+            .expect("Failed to get tag");
+        println!("{:?}", no_data);
+        
+    }
+
+}
+#[test]
+fn test_decode() {
+    let img_file = File::open("resources/zh_dem_25.tif").expect("Cannot find test image!");
+    let mut decoder = Decoder::new(img_file).expect("Cannot create decoder");
+    println!("{:#?}", decoder);
+    let no_data = decoder
+        .get_tag(tags::GDALNODATA)
+        .expect("Failed to get tag");
+    println!("{:?}", no_data);
 }
 
 // #[test]

@@ -5,5 +5,5 @@ authors = ["Dominik Bucher <dobucher@ethz.ch>, Etienne Prothon <etienne.prothon@
 edition = "2018"
 
 [dependencies]
-tiff = "0.5"
+tiff = {git= "https://github.com/Farkal/image-tiff.git", branch = "custom"}
 thiserror = "1.0"
