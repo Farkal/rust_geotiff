@@ -16,21 +16,21 @@ use tiff::{TiffResult, TiffError, TiffUnsupportedError};
 //     }
 // }
 
-pub fn get_offsets<R: Read + Seek>(decoder: &mut Decoder<R>) -> TiffResult<Vec<u32>> {
+pub fn get_offsets<R: Read + Seek>(decoder: &mut Decoder<R>) -> TiffResult<Vec<u64>> {
     // If there is no strip  offset it's tiled
     if decoder.get_tag_u32(Tag::StripOffsets).is_err() {
-        decoder.get_tag_u32_vec(Tag::TileOffsets)
+        decoder.get_tag_u64_vec(Tag::TileOffsets)
     } else {
-        decoder.get_tag_u32_vec(Tag::StripOffsets)
+        decoder.get_tag_u64_vec(Tag::StripOffsets)
     }
 }
 
-pub fn get_byte_counts<R: Read + Seek>(decoder: &mut Decoder<R>) -> TiffResult<Vec<u32>> {
+pub fn get_byte_counts<R: Read + Seek>(decoder: &mut Decoder<R>) -> TiffResult<Vec<u64>> {
     // If there is no strip  offset it's tiled
     if decoder.get_tag_u32(Tag::StripOffsets).is_err() {
-        decoder.get_tag_u32_vec(Tag::TileByteCounts)
+        decoder.get_tag_u64_vec(Tag::TileByteCounts)
     } else {
-        decoder.get_tag_u32_vec(Tag::StripByteCounts)
+        decoder.get_tag_u64_vec(Tag::StripByteCounts)
     }
 }
 
