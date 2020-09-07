@@ -3,8 +3,8 @@
 
 pub mod decoder;
 pub mod encoder;
-pub mod tags;
 pub mod error;
+pub mod tags;
 
 pub use tiff::*;
 

@@ -1,5 +1,5 @@
-pub use tiff::encoder::*;
 pub use tiff::encoder::colortype::ColorType;
+pub use tiff::encoder::*;
 // use crate::GeoTiffResult;
 // use std::io::{Seek, Write};
 

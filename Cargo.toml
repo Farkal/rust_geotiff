@@ -6,4 +6,7 @@ edition = "2018"
 
 [dependencies]
 tiff = {git= "https://github.com/Farkal/image-tiff.git", branch = "custom"}
+# tiff = {path= "../image-tiff"}
 thiserror = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+quick-xml = { version = "0.18", features = ["serialize"] }

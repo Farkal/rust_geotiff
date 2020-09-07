@@ -1,8 +1,8 @@
 pub use tiff::decoder::*;
 // use crate::GeoTiffResult;
-use std::io::{Seek, Read};
 use crate::tags::{self, Tag};
-use tiff::{TiffResult, TiffError, TiffUnsupportedError};
+use std::io::{Read, Seek};
+use tiff::{TiffError, TiffResult, TiffUnsupportedError};
 // #[derive(Debug)]
 // pub struct Decoder<R> where
 //     R: Read + Seek {
@@ -38,8 +38,7 @@ pub fn get_origin<R: Read + Seek>(decoder: &mut Decoder<R>) -> TiffResult<[f64; 
     match decoder.get_tag_f64_vec(tags::MODELTIEPOINT) {
         Ok(ref tie_points) if tie_points.len() == 6 => Ok([tie_points[3], tie_points[4]]),
         _ => {
-            if let Ok(model_transformation) =
-                decoder.get_tag_f64_vec(tags::MODELTRANSFORMATIONTAG)
+            if let Ok(model_transformation) = decoder.get_tag_f64_vec(tags::MODELTRANSFORMATIONTAG)
             {
                 Ok([model_transformation[3], model_transformation[7]])
             } else {
@@ -52,18 +51,17 @@ pub fn get_origin<R: Read + Seek>(decoder: &mut Decoder<R>) -> TiffResult<[f64; 
 }
 
 pub fn get_resolution<R: Read + Seek>(decoder: &mut Decoder<R>) -> TiffResult<[f64; 2]> {
-        match decoder.get_tag_f64_vec(tags::MODELPIXELSCALE) {
-            Ok(mps) => Ok([mps[0], -mps[1]]),
-            _ => {
-                if let Ok(model_transformation) =
-                    decoder.get_tag_f64_vec(tags::MODELTRANSFORMATIONTAG)
-                {
-                    Ok([model_transformation[0], model_transformation[5]])
-                } else {
-                    Err(TiffError::UnsupportedError(
-                        TiffUnsupportedError::UnknownInterpretation,
-                    ))
-                }
+    match decoder.get_tag_f64_vec(tags::MODELPIXELSCALE) {
+        Ok(mps) => Ok([mps[0], -mps[1]]),
+        _ => {
+            if let Ok(model_transformation) = decoder.get_tag_f64_vec(tags::MODELTRANSFORMATIONTAG)
+            {
+                Ok([model_transformation[0], model_transformation[5]])
+            } else {
+                Err(TiffError::UnsupportedError(
+                    TiffUnsupportedError::UnknownInterpretation,
+                ))
             }
         }
     }
+}

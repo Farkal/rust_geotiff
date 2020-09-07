@@ -9,6 +9,4 @@ pub enum GeoTiffError {
     DecodingFailed,
     #[error("Tiff Error")]
     TError(#[from] TiffError),
-    
-
 }

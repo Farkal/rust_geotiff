@@ -1,9 +1,12 @@
-use rust_geotiff::decoder::Decoder;
+use rust_geotiff::decoder::*;
 use rust_geotiff::encoder::TiffEncoder;
 use rust_geotiff::tags;
-use tiff::encoder::{colortype};
+use tiff::encoder::colortype;
 // use tiff::tags::{CompressionMethod};
-use std::{io::{SeekFrom, Seek}, fs::File};
+use std::{
+    fs::File,
+    io::{Seek, SeekFrom},
+};
 
 #[test]
 fn test_encoder() {
@@ -21,7 +24,10 @@ fn test_encoder() {
     {
         let mut encoder = TiffEncoder::new(&mut file).expect("Cannot create decoder");
         let mut image = encoder.new_image::<colortype::RGB8>(100, 100).unwrap();
-        image.encoder().write_tag(tags::GDALNODATA, "-5999").unwrap();
+        image
+            .encoder()
+            .write_tag(tags::GDALNODATA, "-5999")
+            .unwrap();
         image.write_data(&image_data).unwrap();
         // encoder.encoder.write_image(100, 100, &image_data, colortype::RGB8, CompressionMethod::None, vec![(tags::GDALNODATA, Value::Str("-5999".into()))]).unwrap();
     }
@@ -34,9 +40,7 @@ fn test_encoder() {
             .get_tag(tags::GDALNODATA)
             .expect("Failed to get tag");
         println!("{:?}", no_data);
-        
     }
-
 }
 #[test]
 fn test_decode() {
@@ -47,6 +51,45 @@ fn test_decode() {
         .get_tag(tags::GDALNODATA)
         .expect("Failed to get tag");
     println!("{:?}", no_data);
+}
+#[test]
+fn test_decode_cog() {
+    let img_file = File::open("resources/test_ec_cog.tif").expect("Cannot find test image!");
+    let mut decoder = Decoder::new(img_file).expect("Cannot create decoder");
+    println!("{:#?}", decoder);
+    let no_data = decoder
+        .get_tag(tags::GDALNODATA)
+        .expect("Failed to get tag");
+    println!("{:?}", no_data);
+
+    get_offsets(&mut decoder).unwrap();
+    get_byte_counts(&mut decoder).unwrap();
+
+    while decoder.more_images() {
+        decoder.next_image().unwrap();
+        get_offsets(&mut decoder).unwrap();
+        get_byte_counts(&mut decoder).unwrap();
+    }
+}
+#[test]
+fn test_decode_cog_3d() {
+    let img_file = File::open("resources/coggo.tif").expect("Cannot find test image!");
+    let mut decoder = Decoder::new(img_file).expect("Cannot create decoder");
+    println!("{:#?}", decoder);
+    let no_data = decoder
+        .get_tag(tags::GDALNODATA)
+        .expect("Failed to get tag");
+    println!("{:?}", no_data);
+    println!("{:#?}", decoder.get_tag(tags::GDALMETADATA));
+
+    get_offsets(&mut decoder).unwrap();
+    get_byte_counts(&mut decoder).unwrap();
+
+    while decoder.more_images() {
+        decoder.next_image().unwrap();
+        get_offsets(&mut decoder).unwrap();
+        get_byte_counts(&mut decoder).unwrap();
+    }
 }
 
 // #[test]
