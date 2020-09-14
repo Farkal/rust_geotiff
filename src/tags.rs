@@ -47,31 +47,6 @@ impl FromStr for GdalMetadata {
             dimensions: HashMap::new(),
         };
         for i in xml.items {
-            match i.role.as_deref() {
-                Some("dimension") => {
-                    if let (Some(s), Some(c)) = (&i.sample, &i.content) {
-                        if let Some(d) = res.dimensions.get_mut(&i.name) {
-                            d.insert(c.into(), s.into());
-                        } else {
-                            let mut values = HashMap::new();
-                            values.insert(c.into(), s.into());
-                            res.dimensions.insert(i.name.clone(), values);
-                        }
-                    }
-                }
-                Some("dimension_units") => {
-                    if let Some(c) = &i.content {
-                        if let Some(d) = res.dimensions.get_mut(&i.name) {
-                            d.insert("units".into(), c.into());
-                        } else {
-                            let mut values = HashMap::new();
-                            values.insert("units".into(), c.into());
-                            res.dimensions.insert(i.name.clone(), values);
-                        }
-                    }
-                }
-                _ => (),
-            }
             match i.name.as_ref() {
                 "minRange" => {
                     if let Some(r) = i.content {
@@ -87,7 +62,30 @@ impl FromStr for GdalMetadata {
                 "units" => res.units = i.content,
                 "add_offset" => res.offset = i.content,
                 "scale_factor" => res.scale_factor = i.content,
-                _ => (),
+                n => if let Some(n_dim) = n.strip_prefix("DIM_") {
+                    if let Some(name) = n_dim.strip_suffix("_VALUE") {
+                        if let (Some(s), Some(c)) = (&i.sample, &i.content) {
+                            if let Some(d) = res.dimensions.get_mut(name) {
+                                d.insert(c.into(), s.into());
+                            } else {
+                                let mut values = HashMap::new();
+                                values.insert(c.into(), s.into());
+                                res.dimensions.insert(name.into(), values);
+                            }
+                        }
+                    }
+                    if let Some(name) = n_dim.strip_suffix("_UNIT") {
+                        if let Some(c) = &i.content {
+                            if let Some(d) = res.dimensions.get_mut(name) {
+                                d.insert("units".into(), c.into());
+                            } else {
+                                let mut values = HashMap::new();
+                                values.insert("units".into(), c.into());
+                                res.dimensions.insert(name.into(), values);
+                            }
+                        }
+                    }
+                },
             }
         }
 
@@ -156,9 +154,10 @@ mod tests {
     <Item name=\"meanValue\" sample=\"0\">13.578433674475427</Item>
     <Item name=\"minRange\" sample=\"0\">0.0</Item>
     <Item name=\"stdDevValue\" sample=\"0\">38.21933888612938</Item>
-    <Item name=\"altitude\" role=\"dimension_units\">mb</Item>
-    <Item name=\"altitude\" sample=\"0\" role=\"dimension\">200</Item>
-    <Item name=\"altitude\" sample=\"1\" role=\"dimension\">400</Item>
+    <Item name=\"DIM_levels_agl_UNIT\" sample=\"0\">ft</Item>
+    <Item name=\"DIM_levels_agl_VALUE\" sample=\"0\">200</Item>
+    <Item name=\"DIM_levels_agl_UNIT\" sample=\"1\">ft</Item>
+    <Item name=\"DIM_levels_agl_VALUE\" sample=\"1\">400</Item>
 </GDALMetadata>";
         let gdal: GdalMetadataXML = from_str(xml).unwrap();
         assert_eq!(
@@ -189,21 +188,27 @@ mod tests {
                         content: Some("38.21933888612938".into(),),
                     },
                     GdalMetadataXMLItem {
-                        name: "altitude".into(),
-                        sample: None,
-                        role: Some("dimension_units".into()),
-                        content: Some("mb".into()),
+                        name: "DIM_levels_agl_UNIT".into(),
+                        sample: Some("0".into(),),
+                        role: None,
+                        content: Some("ft".into()),
                     },
                     GdalMetadataXMLItem {
-                        name: "altitude".into(),
+                        name: "DIM_levels_agl_VALUE".into(),
                         sample: Some("0".into(),),
-                        role: Some("dimension".into()),
+                        role: None,
                         content: Some("200".into()),
                     },
                     GdalMetadataXMLItem {
-                        name: "altitude".into(),
+                        name: "DIM_levels_agl_UNIT".into(),
                         sample: Some("1".into(),),
-                        role: Some("dimension".into()),
+                        role: None,
+                        content: Some("ft".into()),
+                    },
+                    GdalMetadataXMLItem {
+                        name: "DIM_levels_agl_VALUE".into(),
+                        sample: Some("1".into(),),
+                        role: None,
                         content: Some("400".into()),
                     },
                 ],
@@ -217,10 +222,10 @@ mod tests {
         assert_eq!(meta.max_range, Some(255.0));
         let mut dim = HashMap::new();
         let mut alt = HashMap::new();
-        alt.insert("units".into(), "mb".into());
+        alt.insert("units".into(), "ft".into());
         alt.insert("200".into(), "0".into());
         alt.insert("400".into(), "1".into());
-        dim.insert("altitude".into(), alt);
+        dim.insert("levels_agl".into(), alt);
         assert_eq!(meta.dimensions, dim);
         println!("{:?}", meta.dimensions);
         Ok(())

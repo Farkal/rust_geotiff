@@ -52,45 +52,6 @@ fn test_decode() {
         .expect("Failed to get tag");
     println!("{:?}", no_data);
 }
-#[test]
-fn test_decode_cog() {
-    let img_file = File::open("resources/test_ec_cog.tif").expect("Cannot find test image!");
-    let mut decoder = Decoder::new(img_file).expect("Cannot create decoder");
-    println!("{:#?}", decoder);
-    let no_data = decoder
-        .get_tag(tags::GDALNODATA)
-        .expect("Failed to get tag");
-    println!("{:?}", no_data);
-
-    get_offsets(&mut decoder).unwrap();
-    get_byte_counts(&mut decoder).unwrap();
-
-    while decoder.more_images() {
-        decoder.next_image().unwrap();
-        get_offsets(&mut decoder).unwrap();
-        get_byte_counts(&mut decoder).unwrap();
-    }
-}
-#[test]
-fn test_decode_cog_3d() {
-    let img_file = File::open("resources/coggo.tif").expect("Cannot find test image!");
-    let mut decoder = Decoder::new(img_file).expect("Cannot create decoder");
-    println!("{:#?}", decoder);
-    let no_data = decoder
-        .get_tag(tags::GDALNODATA)
-        .expect("Failed to get tag");
-    println!("{:?}", no_data);
-    println!("{:#?}", decoder.get_tag(tags::GDALMETADATA));
-
-    get_offsets(&mut decoder).unwrap();
-    get_byte_counts(&mut decoder).unwrap();
-
-    while decoder.more_images() {
-        decoder.next_image().unwrap();
-        get_offsets(&mut decoder).unwrap();
-        get_byte_counts(&mut decoder).unwrap();
-    }
-}
 
 // #[test]
 // fn test_load_2() {
