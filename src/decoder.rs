@@ -37,15 +37,10 @@ pub fn get_byte_counts<R: Read + Seek>(decoder: &mut Decoder<R>) -> TiffResult<V
 pub fn get_origin<R: Read + Seek>(decoder: &mut Decoder<R>) -> TiffResult<[f64; 2]> {
     match decoder.get_tag_f64_vec(tags::MODELTIEPOINT) {
         Ok(ref tie_points) if tie_points.len() == 6 => Ok([tie_points[3], tie_points[4]]),
+        Err(TiffError::DataUnreachable(v)) => Err(TiffError::DataUnreachable(v)),
         _ => {
-            if let Ok(model_transformation) = decoder.get_tag_f64_vec(tags::MODELTRANSFORMATIONTAG)
-            {
-                Ok([model_transformation[3], model_transformation[7]])
-            } else {
-                Err(TiffError::UnsupportedError(
-                    TiffUnsupportedError::UnknownInterpretation,
-                ))
-            }
+            let model_transformation = decoder.get_tag_f64_vec(tags::MODELTRANSFORMATIONTAG)?;
+            Ok([model_transformation[3], model_transformation[7]])
         }
     }
 }
@@ -53,15 +48,10 @@ pub fn get_origin<R: Read + Seek>(decoder: &mut Decoder<R>) -> TiffResult<[f64; 
 pub fn get_resolution<R: Read + Seek>(decoder: &mut Decoder<R>) -> TiffResult<[f64; 2]> {
     match decoder.get_tag_f64_vec(tags::MODELPIXELSCALE) {
         Ok(mps) => Ok([mps[0], -mps[1]]),
+        Err(TiffError::DataUnreachable(v)) => Err(TiffError::DataUnreachable(v)),
         _ => {
-            if let Ok(model_transformation) = decoder.get_tag_f64_vec(tags::MODELTRANSFORMATIONTAG)
-            {
-                Ok([model_transformation[0], model_transformation[5]])
-            } else {
-                Err(TiffError::UnsupportedError(
-                    TiffUnsupportedError::UnknownInterpretation,
-                ))
-            }
+            let model_transformation = decoder.get_tag_f64_vec(tags::MODELTRANSFORMATIONTAG)?;
+            Ok([model_transformation[0], model_transformation[5]])
         }
     }
 }
