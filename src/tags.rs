@@ -15,6 +15,7 @@ pub struct GdalMetadata {
     pub min_range: Option<f64>,
     pub max_range: Option<f64>,
     pub dimensions: HashMap<String, HashMap<String, String>>,
+    pub meta: HashMap<String, Option<String>>,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
@@ -45,6 +46,7 @@ impl FromStr for GdalMetadata {
             min_range: None,
             max_range: None,
             dimensions: HashMap::new(),
+            meta: HashMap::new()
         };
         for i in xml.items {
             match i.name.as_ref() {
@@ -85,6 +87,8 @@ impl FromStr for GdalMetadata {
                             }
                         }
                     }
+                } else {
+                    res.meta.insert(n.into(), i.content);
                 },
             }
         }
@@ -158,6 +162,7 @@ mod tests {
     <Item name=\"DIM_levels_agl_VALUE\" sample=\"0\">200</Item>
     <Item name=\"DIM_levels_agl_UNIT\" sample=\"1\">ft</Item>
     <Item name=\"DIM_levels_agl_VALUE\" sample=\"1\">400</Item>
+    <Item name=\"otherMeta\" sample=\"0\">100.0</Item>
 </GDALMetadata>";
         let gdal: GdalMetadataXML = from_str(xml).unwrap();
         assert_eq!(
@@ -211,6 +216,12 @@ mod tests {
                         role: None,
                         content: Some("400".into()),
                     },
+                    GdalMetadataXMLItem {
+                        name: "otherMeta".into(),
+                        sample: Some("0".into(),),
+                        role: None,
+                        content: Some("100.0".into()),
+                    },
                 ],
             },
             gdal
@@ -227,7 +238,7 @@ mod tests {
         alt.insert("400".into(), "1".into());
         dim.insert("levels_agl".into(), alt);
         assert_eq!(meta.dimensions, dim);
-        println!("{:?}", meta.dimensions);
+        println!("{:?}", meta);
         Ok(())
     }
 }
